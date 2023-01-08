@@ -1,0 +1,10 @@
+cd ~/scratch/yolov5
+source /users/aem603/scratch/anaconda3/bin/activate yolov5-wheat
+~/scratch/yolov7/check_cuda_devices.py
+tensorboard --bind_all --logdir runs/train &!
+
+PYTHONPATH=$PWD python -m torch.distributed.launch --nproc_per_node 4 --master_port 9527 train.py --workers 8 --device 0,1,2,3 --sync-bn --data GlobalWheat2020.yaml --epochs 300 --weights '' --cfg yolov5n.yaml  --batch-size 128
+
+PYTHONPATH=$PWD python test.py --device 0,1,2,3 --batch-size 32 --data data/Wheat.yaml  --weights /users/aem603/scratch/yolov7/runs/train/yolov7-wheat16/weights/best.pt --name yolov7-wheat16 --task test
+
+watch -d -n 0.5 nvidia-smi
